@@ -40,6 +40,27 @@ class TaskWithIdSchema(BaseModel):
     class Config:
         orm_mode = True
 
+class TaskWithOnlyIdSchema(BaseModel):
+    username: str
+    description: str
+    title: str
+    karma:int
+    taskid: int
+
+    class Config:
+        orm_mode = True
+
+class HOFSchema(BaseModel):
+    username: str
+    description: str
+    title: str
+    karma:int
+    reservename:str
+    
+    class Config:
+        orm_mode = True
+
+
 class ReserveSchema(BaseModel):
     taskid:int
     reservename:str
