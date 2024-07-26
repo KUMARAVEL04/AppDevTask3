@@ -6,6 +6,10 @@ sealed class Screen(val route:String){
     object userScreen : Screen("user")
     object taskCreationScreen : Screen("taskCreate")
     object taskScreen : Screen("taskView")
+    object hallOfFame : Screen("hallOfFame")
+
+    object updateScreen : Screen("updateScreen")
+
     object taskDashboard : Screen("taskDashboard")
 
 

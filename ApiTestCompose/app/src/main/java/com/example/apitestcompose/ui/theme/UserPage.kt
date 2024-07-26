@@ -74,6 +74,9 @@ fun UserPage(modifier: Modifier= Modifier
     .fillMaxSize()
     .background(colorResource(id = R.color.light_blue_200)),userName: String,karmax:Int,navController: NavController){
     val localDensity = LocalDensity.current
+    var counter by remember {
+        mutableStateOf(0)
+    }
     var karma by remember {
         mutableStateOf(karmax)
     }
@@ -168,7 +171,9 @@ fun UserPage(modifier: Modifier= Modifier
                     , horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
 
                     //text
-                    Text(text = userName, fontSize = columnHeightSp/15, color = Color.White)
+                    Text(text = userName, fontSize = columnHeightSp/15, color = Color.White, modifier = Modifier.clickable {
+                        navController.navigate(Screen.hallOfFame.route+"/${userName}")
+                    })
 
                     //task_panel
                     Column(modifier= Modifier
@@ -190,9 +195,10 @@ fun UserPage(modifier: Modifier= Modifier
                                 @Composable
                                 fun TaskPanel(modifier: Modifier= Modifier
                                     .fillMaxWidth()
-                                    .wrapContentHeight(),taskResponse: TaskResponse){
+                                    .wrapContentHeight(),taskResponse: TaskResponse,maxkarma:Int){
                                     val taskTitle = taskResponse.title
                                     val underinspection = taskResponse.underinspection
+                                    val isreserved = taskResponse.isreserved
                                     val karma = taskResponse.karma
                                     val reservedName = taskResponse.reservename
                                     val localDensity = LocalDensity.current
@@ -220,25 +226,41 @@ fun UserPage(modifier: Modifier= Modifier
                                         .padding(5.dp)
                                         .onGloballyPositioned { coordinates ->
                                             columnHeightPx = coordinates.size.height.toFloat()
-                                            columnHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                                            columnHeightSp = with(localDensity) { coordinates.size.height.toSp() }
+                                            columnHeightDp =
+                                                with(localDensity) { coordinates.size.height.toDp() }
+                                            columnHeightSp =
+                                                with(localDensity) { coordinates.size.height.toSp() }
                                             columnWidthPx = coordinates.size.width.toFloat()
-                                            columnWidthDp = with(localDensity) { coordinates.size.width.toDp() }
+                                            columnWidthDp =
+                                                with(localDensity) { coordinates.size.width.toDp() }
                                         }
                                         .clickable {
                                             if (underinspection) {
                                                 coroutineScope.launch(Dispatchers.IO) {
-                                                    val finishResponse = RetrofitInstance.api.completeTask(taskResponse)
+                                                    val finishResponse =
+                                                        RetrofitInstance.api.completeTask(
+                                                            taskResponse
+                                                        )
                                                     if (finishResponse.isSuccessful && !finishResponse
                                                             .body()
                                                             .isNullOrEmpty()
                                                     ) {
                                                         @Composable
-                                                        fun Refresh(navController: NavController){
+                                                        fun Refresh(navController: NavController) {
                                                         }
                                                         println("Completed Message : ${finishResponse.body()}")
                                                     }
                                                 }
+                                            } else {
+                                                navController.navigate(
+                                                    Screen.updateScreen.route +
+                                                            "/${taskResponse.username}" +
+                                                            "/${maxkarma}" +
+                                                            "/${taskResponse.karma}" +
+                                                            "/${taskResponse.title}" +
+                                                            "/${taskResponse.description}" +
+                                                            "/${taskResponse.taskid}"
+                                                )
                                             }
                                         }) {
 
@@ -259,7 +281,7 @@ fun UserPage(modifier: Modifier= Modifier
                                         }
                                     }
                                 }
-                                TaskPanel(modifier = Modifier,i)
+                                TaskPanel(modifier = Modifier,i,karma)
                                 Spacer(modifier = Modifier.height(5.dp))
                             }
                         }
@@ -297,7 +319,23 @@ fun UserPage(modifier: Modifier= Modifier
                 )
                 .padding(10.dp)
                 .clip(CircleShape)
-                .background(Color.White), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                .background(Color.White)
+                .clickable {
+                    counter+=1
+                    println("Karma = $counter")
+                    if(counter>49){
+                        counter=0
+                        coroutineScope.launch(Dispatchers.IO){
+                            println("here")
+                            val karmaresponse = RetrofitInstance.api.addKarma(userName)
+                            if(karmaresponse.isSuccessful && karmaresponse!=null){
+                                println("${karmaresponse.isSuccessful}Karma = karma")
+                                karma = karmaresponse.body()!!.toInt()
+                            }
+                        }
+                    }
+                }
+                , horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
                 Text(text = karma.toString(), fontSize = columnHeightSp/12, maxLines = 1, color = colorResource(id = R.color.light_blue_200))
                 Text(text = "KARMA", fontSize = columnHeightSp/35, color = colorResource(id = R.color.light_blue_200), maxLines = 1, fontWeight = FontWeight.Bold)
 

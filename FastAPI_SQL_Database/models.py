@@ -23,16 +23,17 @@ class Task(Base):
     underinspection = Column(Boolean,default=False,nullable=False)
     karma = Column(Integer)
     reservename = Column(String, ForeignKey("users.username"),nullable=True)
+    isedited = Column(Boolean,default=False,nullable=False)
 
 class HallFame(Base):
     __tablename__ = "hall"
 
-    taskid = Column(Integer, primary_key=True, index=True,autoincrement="auto")
-    username = Column(String, ForeignKey("users.username"))
+    fameid = Column(Integer, primary_key=True, index=True,autoincrement="auto")
+    owner = Column(String, ForeignKey("users.username"))
     description = Column(String)
     title = Column(String)
     karma = Column(Integer)
-    reservename = Column(String, ForeignKey("users.username"),nullable=True)
+    volunteer = Column(String, ForeignKey("users.username"),nullable=True)
 
 
 

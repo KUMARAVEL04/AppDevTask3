@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 import uvicorn
 import uvicorn
 
-
-SECRET_KEY = "ee2082aa22afde6835c55e15a3776782e5a4410d029cd0975c7f1a1995dccbae0"
+file1 = open("key.txt","r")
+stringkey = file1.readline()
+SECRET_KEY = stringkey
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -37,7 +38,8 @@ def get_db():
 
 @app.get("/")
 async def home(db: Session = Depends(get_db)):
-    return "Welcome to the API"
+    return "This is the API for APPDEVTASK3"
+
 
 @app.get("/allUsers")
 async def home(db: Session = Depends(get_db)):
@@ -48,6 +50,14 @@ async def home(db: Session = Depends(get_db)):
 async def home(username,db: Session = Depends(get_db)):
     karma = db.query(User).filter(User.username==username).first().karma
     return karma
+
+@app.get("/karmaadd/{username}")
+async def karmadd(username,db: Session = Depends(get_db)):
+    karmax = db.query(User).filter(User.username==username).first()
+    karmax.karma+=1
+    db.commit()
+    db.refresh(karmax)
+    return karmax.karma
 
 @app.post("/adduser")   
 async def add_user(request:UserSchema, db: Session = Depends(get_db)):
@@ -82,17 +92,19 @@ async def update_task(request:TaskWithOnlyIdSchema, db: Session = Depends(get_db
     users = db.query(User).filter(User.username == request.username).first()
     if(users):
         realtask = db.query(Task).filter(Task.taskid==request.taskid).first()
-        if not (realtask.isreserved):
+        if not (realtask.underinspection):
             users.karma+=realtask.karma
             realtask.description=request.description
             realtask.title=request.title
             realtask.karma=request.karma
+            if(realtask.isreserved):
+                realtask.isedited = True
             users.karma-=request.karma
             db.add(realtask)
             db.commit()
             db.refresh(users)
             db.refresh(realtask)
-            return realtask 
+            return "Task Updated" 
         else:
             raise HTTPException(status_code=400, detail="Task Not Available")
 
@@ -106,7 +118,7 @@ async def complete_task(request:TaskWithIdSchema,db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     reserveduser = db.query(User).filter(User.username == task.reservename).first()
     reserveduser.karma+=task.karma
-    hofentry = HallFame(reservename=request.reservename,username=request.username,title=request.title,description=request.description,karma=request.karma)
+    hofentry = HallFame(volunteer=request.reservename,owner=request.username,title=request.title,description=request.description,karma=request.karma)
     db.add(hofentry)
     db.delete(task)
     db.commit()
@@ -158,6 +170,18 @@ async def get_other_tasks(username,db:Session = Depends(get_db)):
         return tasks
     else:
         raise HTTPException(status_code=400, detail="No Account")
+    
+    
+@app.get("/HOF/{username}")
+async def get_prev_tasks(username,db:Session = Depends(get_db)):
+    users = db.query(User).filter(User.username == username).first()
+    if(users):
+        tasks = db.query(HallFame).filter(HallFame.volunteer == username).all()
+        if not tasks:
+            raise HTTPException(status_code=400, detail="No Previous Completions")
+        return tasks
+    else:
+        raise HTTPException(status_code=400, detail="No Such Account")
 
 
 @app.get("/task2/{username}")

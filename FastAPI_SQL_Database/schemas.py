@@ -35,7 +35,7 @@ class TaskWithIdSchema(BaseModel):
     isreserved: bool
     underinspection: bool
     reservename: str
-
+    isedited: bool
 
     class Config:
         orm_mode = True
@@ -51,11 +51,11 @@ class TaskWithOnlyIdSchema(BaseModel):
         orm_mode = True
 
 class HOFSchema(BaseModel):
-    username: str
+    owner: str
     description: str
     title: str
     karma:int
-    reservename:str
+    volunteer:str
     
     class Config:
         orm_mode = True

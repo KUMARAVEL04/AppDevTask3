@@ -33,6 +33,13 @@ data class TaskSchema(
     var karma:Int,
 )
 
+data class UpdateSchema(
+    var username:String,
+    var description:String,
+    var title:String ,
+    var karma:Int,
+    var taskid: Int
+)
 data class TaskResponse(
     var taskid:Int,
     var username:String,
@@ -41,8 +48,18 @@ data class TaskResponse(
     var isreserved:Boolean,
     var underinspection:Boolean ,
     var karma:Int,
-    var reservename:String
+    var reservename:String,
+    var isedited:Boolean
 )
+
+data class HallResponse(
+    var fameid:Int,
+    var owner:String,
+    var description:String,
+    var title:String ,
+    var karma:Int,
+    var volunteer:String,
+    )
 
 data class UserResponse(
     var userId: Int,
@@ -75,6 +92,9 @@ interface ChaseDeuxInterface {
     @GET("/karma/{username}")
     suspend fun getKarma(@Path("username") username: String) : Response<Int>
 
+    @GET("/karmaadd/{username}")
+    suspend fun addKarma(@Path("username") username: String) : Response<Int>
+
 
     @GET("/othertask/{username}")
     suspend fun getOtherTasks(@Path("username") username: String) : Response<List<TaskResponse>>
@@ -86,8 +106,13 @@ interface ChaseDeuxInterface {
     @GET("/task2/{username}")
     suspend fun getTasks(@Path("username") username: String) : Response<List<TaskResponse>>
 
+    @GET("/HOF/{username}")
+    suspend fun hallOfFame(@Path("username") username: String) : Response<List<HallResponse>>
+
     @POST("/addtask")
     suspend fun addTask(@Body task: TaskSchema) : Response<TaskResponse>
+    @POST("/updatetask")
+    suspend fun updateTask(@Body task: UpdateSchema) : Response<String>
 }
 object RetrofitInstance {
 

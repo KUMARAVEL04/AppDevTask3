@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
+import com.example.apitestcompose.HallResponse
 import com.example.apitestcompose.Inter
 import com.example.apitestcompose.ReserveBody
 import com.example.apitestcompose.RetrofitInstance
@@ -58,15 +59,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun Tasks(){
-//        TaskView(username="string")
-//}
 
 @Composable
-fun YourTaskView(modifier: Modifier= Modifier
+fun TaskHOF(modifier: Modifier= Modifier
     .fillMaxSize()
     .background(colorResource(id = R.color.dark_blue_200)),username:String,navController: NavController
 ){
@@ -86,11 +81,8 @@ fun YourTaskView(modifier: Modifier= Modifier
         var karma by remember {
             mutableStateOf(0)
         }
-        var edited by remember{
-            mutableStateOf(false)
-        }
         var list_of_tasks = remember {
-            mutableStateOf(listOf<TaskResponse>())
+            mutableStateOf(listOf<HallResponse>())
         }
         val coroutineScope = rememberCoroutineScope()
         var restart by remember {
@@ -98,7 +90,7 @@ fun YourTaskView(modifier: Modifier= Modifier
         }
         LaunchedEffect(restart) {
             withContext(Dispatchers.IO){
-                val response =RetrofitInstance.api.getYourTasks(username)
+                val response =RetrofitInstance.api.hallOfFame(username)
                 println("Tasks Response : ${response.isSuccessful} Response: ${response.body()}")
                 if(response.isSuccessful){
                     maxTask=response.body()!!.size
@@ -110,11 +102,10 @@ fun YourTaskView(modifier: Modifier= Modifier
                         titleText=list_of_tasks.value[0].title
                         descriptionText=list_of_tasks.value[0].description
                         karma=list_of_tasks.value[0].karma
-                        edited=list_of_tasks.value[0].isedited
                     }
                     else{
                         titleText="Hi"
-                        descriptionText="There might be a connection error or no new tasks are available yet. Please try again later"
+                        descriptionText="There might be a connection error or no tasks have been completed yet. Please try again later"
                         karma=0
                     }
                 }
@@ -137,36 +128,10 @@ fun YourTaskView(modifier: Modifier= Modifier
                             titleText = list_of_tasks.value[list_number].title
                             descriptionText = list_of_tasks.value[list_number].description
                             karma = list_of_tasks.value[list_number].karma
-                            edited=list_of_tasks.value[list_number].isedited
                         }
                     }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Icon(painter = painterResource(id = R.drawable.up_drop_arrow), contentDescription = "up", tint = Color.White)
                     Text("PREV", color = Color.White, fontFamily = jost)
-                }
-                Column(modifier= Modifier
-                    .clip(RoundedCornerShape(25))
-                    .background(colorResource(id = R.color.dark_blue_200))
-                    .padding(10.dp)
-                    .aspectRatio(1f)
-                    .clickable {
-                        if(!list_of_tasks.value.isNullOrEmpty()){
-                            coroutineScope.launch {
-                                withContext(Dispatchers.IO) {
-                                    val response2 = RetrofitInstance.api.submitTask(
-                                        ReserveBody(list_of_tasks.value[list_number].taskid,list_of_tasks.value[list_number].reservename)
-                                    )
-                                    println("Reserve ${response2.isSuccessful} ${response2.body()}")
-                                    if (response2.isSuccessful) {
-                                        if (response2.body() != null) {
-                                            restart=!restart
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(painter = painterResource(id = R.drawable.add), contentDescription = "up", tint = Color.White)
-                    Text("SUBMIT", color = Color.White, fontFamily = jost)
                 }
                 Column(modifier= Modifier
                     .clip(RoundedCornerShape(25))
@@ -179,34 +144,60 @@ fun YourTaskView(modifier: Modifier= Modifier
                             titleText = list_of_tasks.value[list_number].title
                             descriptionText = list_of_tasks.value[list_number].description
                             karma = list_of_tasks.value[list_number].karma
-                            edited=list_of_tasks.value[list_number].isedited
                             println("karma = ${list_of_tasks.value[list_number].karma}, Title = ${list_of_tasks.value[list_number].title}, task")
                         }
                     }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("NEXT", color = Color.White, fontFamily = jost)
                     Icon(painter = painterResource(id = R.drawable.drop_arrow), contentDescription = "up", tint = Color.White)
                 }
-
             }
             Column(modifier= Modifier
                 .weight(0.7f)
                 .fillMaxSize()){
-                if(edited){
-                    Column(modifier=Modifier.weight(0.05f).fillMaxSize().background(Color.White), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
-                        Text(text = "This Content has been edited", fontSize = 15.sp, color = colorResource(id = R.color.dark_blue_200))
+                @Composable
+                fun TaskDesc(modifier: Modifier= Modifier.fillMaxSize(),titleText:String,descriptionText:String,karma:Int){
+                    var titleSize by remember{ mutableStateOf(48.sp)}
+                    Column(modifier= modifier) {
+                        Box(modifier = Modifier
+                            .horizontalScroll(rememberScrollState())
+                            .fillMaxWidth()){
+                            Text(text = titleText, fontFamily = Inter,modifier= Modifier.verticalScroll(
+                                rememberScrollState())
+                                , lineHeight = titleSize, color = Color.White, softWrap = true, fontSize = titleSize)
+                        }
+                        Spacer(modifier = Modifier.weight(0.01f))
+                        Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.02f)
+                        ){
+                            Box(modifier = Modifier
+                                .fillMaxSize()
+                                .padding(0.dp, 5.dp)
+                                .background(Color.White))
+                        }
+                        Text(text = "Karma: ${karma}", color = Color.White,modifier= Modifier
+                            .weight(0.05f)
+                            .padding(4.dp), fontFamily = Inter)
+                        Spacer(modifier = Modifier.weight(0.01f))
+                        Text(text = descriptionText, letterSpacing = 0.2.sp,modifier= Modifier
+                            .weight(0.8f)
+                            .padding(4.dp)
+                            .verticalScroll(
+                                rememberScrollState()
+                            ), color = Color.White, fontFamily = jost)
                     }
+
+
                 }
-                TaskDesc(modifier=Modifier.weight(0.99f).padding(15.dp), titleText = titleText, karma = karma, descriptionText = descriptionText)
+                TaskDesc(modifier=Modifier.padding(15.dp), titleText = titleText, karma = karma, descriptionText = descriptionText)
             }
         }
-
         Column(modifier = Modifier
             .weight(0.06f)
             .fillMaxWidth()
             .wrapContentHeight()
             .clickable {
-                navController.navigateUp()
-            }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                navController.navigateUp()}, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
             Image(painterResource(id = R.drawable.baseline_account_circle_24), contentDescription = "", contentScale = ContentScale.FillBounds)
             Text(text = "BACK", fontSize = 15.sp, color = colorResource(id = R.color.dark_blue_200))
         }

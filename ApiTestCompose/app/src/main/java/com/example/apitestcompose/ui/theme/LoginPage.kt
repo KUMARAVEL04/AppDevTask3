@@ -63,7 +63,6 @@ fun LoginPage(navController: NavController,modifier: Modifier = Modifier
     .fillMaxSize()
     .background(colorResource(id = R.color.dark_blue_200))
 ){
-    navController.popBackStack()
 
     val lineHeightSp: TextUnit = 25.sp
     val lineHeightDp: Dp = with(LocalDensity.current) {
