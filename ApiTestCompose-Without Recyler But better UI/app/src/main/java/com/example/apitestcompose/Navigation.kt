@@ -19,7 +19,7 @@ import com.example.apitestcompose.ui.theme.UserPage
 import com.example.apitestcompose.ui.theme.YourTaskView
 
 @Composable
-fun Navigation(modifier: Modifier = Modifier,firstTime:Boolean,shared: SharedPreferences) {
+    fun Navigation(modifier: Modifier = Modifier,firstTime:Boolean,shared: SharedPreferences) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = if(firstTime){Screen.registerScreen.route}else{Screen.loginScreen.route} ){
         composable(route=Screen.loginScreen.route){

@@ -1,6 +1,7 @@
 package com.example.apitestcompose.ui.theme
 
 import android.widget.Space
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -218,68 +219,72 @@ fun UserPage(modifier: Modifier= Modifier
                                     var columnWidthDp by remember {
                                         mutableStateOf(0.dp)
                                     }
+                                    var visibility by remember {
+                                        mutableStateOf(true)
+                                    }
 
                                     val coroutineScope = rememberCoroutineScope()
-                                    Column(modifier= Modifier
-                                        .clip(RoundedCornerShape(15))
-                                        .background(colorResource(id = R.color.dark_blue_200))
-                                        .padding(5.dp)
-                                        .onGloballyPositioned { coordinates ->
-                                            columnHeightPx = coordinates.size.height.toFloat()
-                                            columnHeightDp =
-                                                with(localDensity) { coordinates.size.height.toDp() }
-                                            columnHeightSp =
-                                                with(localDensity) { coordinates.size.height.toSp() }
-                                            columnWidthPx = coordinates.size.width.toFloat()
-                                            columnWidthDp =
-                                                with(localDensity) { coordinates.size.width.toDp() }
-                                        }
-                                        .clickable {
-                                            if (underinspection) {
-                                                coroutineScope.launch(Dispatchers.IO) {
-                                                    val finishResponse =
-                                                        RetrofitInstance.api.completeTask(
-                                                            taskResponse
-                                                        )
-                                                    if (finishResponse.isSuccessful && !finishResponse
-                                                            .body()
-                                                            .isNullOrEmpty()
-                                                    ) {
-                                                        @Composable
-                                                        fun Refresh(navController: NavController) {
+                                    AnimatedVisibility(visible =visibility) {
+                                        Column(modifier= Modifier
+                                            .clip(RoundedCornerShape(15))
+                                            .background(colorResource(id = R.color.dark_blue_200))
+                                            .padding(5.dp)
+                                            .onGloballyPositioned { coordinates ->
+                                                columnHeightPx = coordinates.size.height.toFloat()
+                                                columnHeightDp =
+                                                    with(localDensity) { coordinates.size.height.toDp() }
+                                                columnHeightSp =
+                                                    with(localDensity) { coordinates.size.height.toSp() }
+                                                columnWidthPx = coordinates.size.width.toFloat()
+                                                columnWidthDp =
+                                                    with(localDensity) { coordinates.size.width.toDp() }
+                                            }
+                                            .clickable {
+                                                if (underinspection) {
+                                                    coroutineScope.launch(Dispatchers.IO) {
+                                                        val finishResponse =
+                                                            RetrofitInstance.api.completeTask(
+                                                                taskResponse
+                                                            )
+                                                        if (finishResponse.isSuccessful && !finishResponse
+                                                                .body()
+                                                                .isNullOrEmpty()
+                                                        ) {
+                                                            visibility=false
+                                                            println("Completed Message : ${finishResponse.body()}")
                                                         }
-                                                        println("Completed Message : ${finishResponse.body()}")
                                                     }
+                                                } else {
+                                                    navController.navigate(
+                                                        Screen.updateScreen.route +
+                                                                "/${taskResponse.username}" +
+                                                                "/${maxkarma}" +
+                                                                "/${taskResponse.karma}" +
+                                                                "/${taskResponse.title}" +
+                                                                "/${taskResponse.description}" +
+                                                                "/${taskResponse.taskid}"
+                                                    )
                                                 }
-                                            } else {
-                                                navController.navigate(
-                                                    Screen.updateScreen.route +
-                                                            "/${taskResponse.username}" +
-                                                            "/${maxkarma}" +
-                                                            "/${taskResponse.karma}" +
-                                                            "/${taskResponse.title}" +
-                                                            "/${taskResponse.description}" +
-                                                            "/${taskResponse.taskid}"
-                                                )
-                                            }
-                                        }) {
+                                            }) {
 
-                                        var color1 = if(underinspection){Color.Green}else{Color.Red}
-                                        Text(text = taskTitle, color = color1, modifier = Modifier.padding(5.dp))
-                                        Box(modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(2.dp)
-                                            .background(Color.White))
-                                        Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                            Text(text ="Karma: ${karma}", color = Color.White, modifier = Modifier.padding(5.dp))
-                                            if(reservedName.isNullOrBlank()){
-                                                Text(text ="Reserved by: None", color = Color.White, modifier = Modifier.padding(5.dp))
-                                            }
-                                            else{
-                                                Text(text ="Reserved by: ${reservedName}", color = Color.White, modifier = Modifier.padding(5.dp))
+                                            var color1 = if(underinspection){Color.Green}else{Color.Red}
+                                            Text(text = taskTitle, color = color1, modifier = Modifier.padding(5.dp))
+                                            Box(modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(2.dp)
+                                                .background(Color.White))
+                                            Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                                Text(text ="Karma: ${karma}", color = Color.White, modifier = Modifier.padding(5.dp))
+                                                if(reservedName.isNullOrBlank()){
+                                                    Text(text ="Reserved by: None", color = Color.White, modifier = Modifier.padding(5.dp))
+                                                }
+                                                else{
+                                                    Text(text ="Reserved by: ${reservedName}", color = Color.White, modifier = Modifier.padding(5.dp))
+                                                }
                                             }
                                         }
                                     }
+
                                 }
                                 TaskPanel(modifier = Modifier,i,karma)
                                 Spacer(modifier = Modifier.height(5.dp))
@@ -321,16 +326,18 @@ fun UserPage(modifier: Modifier= Modifier
                 .clip(CircleShape)
                 .background(Color.White)
                 .clickable {
-                    counter+=1
+                    counter += 1
                     println("Karma = $counter")
-                    if(counter>49){
-                        counter=0
-                        coroutineScope.launch(Dispatchers.IO){
+                    if (counter > 49) {
+                        counter = 0
+                        coroutineScope.launch(Dispatchers.IO) {
                             println("here")
                             val karmaresponse = RetrofitInstance.api.addKarma(userName)
-                            if(karmaresponse.isSuccessful && karmaresponse!=null){
+                            if (karmaresponse.isSuccessful && karmaresponse != null) {
                                 println("${karmaresponse.isSuccessful}Karma = karma")
-                                karma = karmaresponse.body()!!.toInt()
+                                karma = karmaresponse
+                                    .body()!!
+                                    .toInt()
                             }
                         }
                     }
