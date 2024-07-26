@@ -19,7 +19,7 @@ Hacker Mode - Completed Ones:
 
 1.  Allow help seekers to edit a task from their history of posts which are yet to be completed. (If a task is reserved, the user is notified that there is a change)
 2.  Provide an alternative way for users to acquire more karma points when needed. (An Easter egg is implemented where upon pressing the karma circl a specific amount of times, you get an extra karma point)
-3.  Display a history of tasks helped and sought by the user with the help of Recycler View. (Primitive version of the non-recycler compose is implemented)
+3.  Display a history of tasks helped and sought by the user with the help of Recycler View. (Primitive version of the non-recycler compose is implemented, non-recycler version can be found in the main branch)
     
 Not-Completed:
 1.Implement a reputation system where users can rate each other's experience after completing a task, building trust and accountability. This information can be stored on the backend server.
